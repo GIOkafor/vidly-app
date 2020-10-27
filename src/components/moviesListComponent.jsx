@@ -1,22 +1,29 @@
 import React, { Component } from 'react';
 import { getMovies, deleteMovie } from '../services/fakeMovieService';
 import Like from './common/like';
+import Pagination from './common/pagination';
+import { paginate } from '../utils/paginate';
 
 class MoviesListComponent extends Component {
     state = { 
         movies: getMovies(),
-        likes: []
+        pageSize: 4,
+        currentPage: 1
     };
 
     render() { 
+        const { currentPage, movies: allMovies, pageSize } = this.state;
+        const movies = paginate(allMovies, currentPage, pageSize);
+
         return ( 
             <div>
-                <div> { this.state.movies.length < 1 ?  <p>No movies available</p> : this.generateTable() }</div>
-                <ul className="pagination">
-                    <li className="page-item"><a className="page-link" href="#">1</a></li>
-                    <li className="page-item"><a className="page-link" href="#">2</a></li>
-                    <li className="page-item"><a className="page-link" href="#">3</a></li>
-                </ul>
+                <div> { allMovies.length < 1 ?  <p>No movies available</p> : this.generateTable(movies) }</div>
+                <Pagination 
+                    currentPage={currentPage}
+                    itemsCount={allMovies.length}
+                    pageSize={pageSize}
+                    onPageChange={this.handlePageChange}
+                />
             </div>
         );
     }
@@ -43,10 +50,10 @@ class MoviesListComponent extends Component {
             </tr>);
     }
 
-    generateTable = () => {
+    generateTable = (movies) => {
         return( 
             <div>
-                <p>Showing {this.state.movies.length} movies in the database.</p>
+                <p>Showing {movies.length} movies in the database.</p>
                 <table className="table">
                     <thead>
                         <tr>
@@ -60,7 +67,7 @@ class MoviesListComponent extends Component {
                     </thead>
 
                     <tbody>
-                        { this.state.movies.map(movie => this.generateRow(movie) )}
+                        { movies.map(movie => this.generateRow(movie) )}
                     </tbody>
                 </table>
             </div>
@@ -73,6 +80,10 @@ class MoviesListComponent extends Component {
         movies[index] = { ...movies[index] };
         movies[index].liked = !movies[index].liked;
         this.setState({movies});
+    }
+
+    handlePageChange = page => {
+        this.setState({currentPage: page});
     }
 }
  
